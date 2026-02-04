@@ -27,7 +27,9 @@ export class XClient {
     'tweets/search': 3 * 1000, // 3 seconds (~20/min)
     'tweets/create': 30 * 1000, // 30 seconds (2/min, prevents spam)
     'tweets/delete': 30 * 1000, // 30 seconds (2/min)
-    'media/upload': 10 * 1000 // 10 seconds (6/min)
+    'media/upload': 10 * 1000, // 10 seconds (6/min)
+    'users/me': 3 * 1000, // 3 seconds (~20/min)
+    'users/tweets': 3 * 1000 // 3 seconds (~20/min)
   };
 
   constructor(config: Config) {
@@ -383,6 +385,80 @@ export class XClient {
         // For other errors, throw the original error
         throw v2Error;
       }
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * Gets the authenticated user's profile information
+   * @returns Promise resolving to the user's profile (id, username, name)
+   */
+  async getMyProfile(): Promise<{ id: string; username: string; name: string }> {
+    try {
+      const endpoint = 'users/me';
+      await this.checkRateLimit(endpoint);
+
+      const response = await this.client.v2.me({
+        'user.fields': ['username', 'name', 'verified']
+      });
+
+      if (DEBUG) {
+        console.error(`Retrieved profile for @${response.data.username}`);
+      }
+
+      return {
+        id: response.data.id,
+        username: response.data.username,
+        name: response.data.name
+      };
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * Gets the authenticated user's recent tweets
+   * @param count - Number of tweets to retrieve (10-100)
+   * @returns Promise resolving to the user's tweets and profile
+   */
+  async getMyTweets(count: number): Promise<{ tweets: Tweet[]; profile: XUser }> {
+    try {
+      // First get the authenticated user's ID
+      const me = await this.getMyProfile();
+
+      const endpoint = 'users/tweets';
+      await this.checkRateLimit(endpoint);
+
+      const response = await this.client.v2.userTimeline(me.id, {
+        max_results: count,
+        'tweet.fields': ['public_metrics', 'created_at'],
+        'user.fields': ['username', 'name', 'verified']
+      });
+
+      if (DEBUG) {
+        console.error(`Retrieved ${response.tweets.length} tweets for @${me.username}`);
+      }
+
+      const tweets = response.tweets.map(tweet => ({
+        id: tweet.id,
+        text: tweet.text,
+        authorId: me.id,
+        metrics: {
+          likes: tweet.public_metrics?.like_count ?? 0,
+          retweets: tweet.public_metrics?.retweet_count ?? 0,
+          replies: tweet.public_metrics?.reply_count ?? 0,
+          quotes: tweet.public_metrics?.quote_count ?? 0
+        },
+        createdAt: tweet.created_at ?? ''
+      }));
+
+      const profile: XUser = {
+        id: me.id,
+        username: me.username
+      };
+
+      return { tweets, profile };
     } catch (error) {
       this.handleApiError(error);
     }

@@ -143,6 +143,31 @@ export class XServer {
             },
             required: ['tweet_id']
           }
+        } as Tool,
+        {
+          name: 'get_my_profile',
+          description: 'Get the authenticated X user\'s profile information including username, id, and display name. Use this when the user asks about their own X/Twitter account.',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        } as Tool,
+        {
+          name: 'get_my_tweets',
+          description: 'Get the authenticated user\'s recent tweets. Use this instead of search when the user wants to see their own posts or tweets.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              count: {
+                type: 'number',
+                description: 'Number of tweets to retrieve (10-100)',
+                minimum: 10,
+                maximum: 100
+              }
+            },
+            required: []
+          }
         } as Tool
       ]
     }));
@@ -160,6 +185,10 @@ export class XServer {
             return await this.handleSearchTweets(args);
           case 'delete_tweet':
             return await this.handleDeleteTweet(args);
+          case 'get_my_profile':
+            return await this.handleGetMyProfile();
+          case 'get_my_tweets':
+            return await this.handleGetMyTweets(args);
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -268,7 +297,7 @@ export class XServer {
     const result = z.object({
       tweet_id: z.string()
     }).safeParse(args);
-    
+
     if (!result.success) {
       throw new McpError(
         ErrorCode.InvalidParams,
@@ -277,13 +306,42 @@ export class XServer {
     }
 
     const deleteResult = await this.client.deleteTweet(result.data.tweet_id);
-    
+
     return {
       content: [{
         type: 'text',
-        text: deleteResult.deleted 
+        text: deleteResult.deleted
           ? `Tweet ${result.data.tweet_id} deleted successfully!`
           : `Failed to delete tweet ${result.data.tweet_id}`
+      }] as TextContent[]
+    };
+  }
+
+  private async handleGetMyProfile() {
+    const profile = await this.client.getMyProfile();
+    return {
+      content: [{
+        type: 'text',
+        text: `Your X Profile:\n- Username: @${profile.username}\n- Display Name: ${profile.name}\n- User ID: ${profile.id}`
+      }] as TextContent[]
+    };
+  }
+
+  private async handleGetMyTweets(args: unknown) {
+    const count = (args as { count?: number })?.count || 20;
+    const validCount = Math.min(Math.max(count, 10), 100);
+
+    const { tweets, profile } = await this.client.getMyTweets(validCount);
+    const formattedResponse = ResponseFormatter.formatSearchResponse(
+      `@${profile.username}'s tweets`,
+      tweets,
+      [profile]
+    );
+
+    return {
+      content: [{
+        type: 'text',
+        text: ResponseFormatter.toMcpResponse(formattedResponse)
       }] as TextContent[]
     };
   }
