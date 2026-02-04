@@ -11,20 +11,23 @@ export class XClient {
   private rateLimitMap = new Map<string, number>();
   private dailyLimits = new Map<string, { count: number; resetAt: Date }>();
   
-  // Free tier daily limits
+  // Daily limits per user - generous but prevents runaway abuse
+  // X's actual limits vary by tier; these are reasonable for normal usage
   private readonly DAILY_LIMITS: Record<string, number> = {
-    'tweets/create': 17,
-    'tweets/delete': 17,
-    'media/upload': 17 // Assuming same as tweets
+    'tweets/create': 100,
+    'tweets/delete': 100,
+    'media/upload': 100
   };
   
-  // Per-15-minute limits for free tier
+  // Rate limits - balanced for LLM usage patterns while preventing abuse
+  // X's actual limits are much higher (e.g., 450 searches/15min) but we add
+  // client-side throttling to prevent runaway LLM behavior
   private readonly RATE_LIMITS_MS: Record<string, number> = {
-    'tweets/lookup': 15 * 60 * 1000, // 15 minutes
-    'tweets/search': 15 * 60 * 1000, // 15 minutes
-    'tweets/create': 60 * 1000, // 1 minute between posts
-    'tweets/delete': 60 * 1000, // 1 minute between deletes
-    'media/upload': 60 * 1000 // 1 minute between uploads
+    'tweets/lookup': 3 * 1000, // 3 seconds (~20/min)
+    'tweets/search': 3 * 1000, // 3 seconds (~20/min)
+    'tweets/create': 30 * 1000, // 30 seconds (2/min, prevents spam)
+    'tweets/delete': 30 * 1000, // 30 seconds (2/min)
+    'media/upload': 10 * 1000 // 10 seconds (6/min)
   };
 
   constructor(config: Config) {

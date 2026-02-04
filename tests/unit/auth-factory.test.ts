@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { createTwitterClient } from '../../src/auth/factory.js';
+import { createXClient } from '../../src/auth/factory.js';
 import type { Config } from '../../src/types.js';
 
 // Mock TwitterApi
@@ -28,7 +28,7 @@ describe('Auth Factory', () => {
         authType: 'oauth1'
       };
 
-      const client = createTwitterClient(config) as any;
+      const client = createXClient(config) as any;
       
       expect(client.isOAuth1).toBe(true);
       expect(client.mockConfig).toEqual({
@@ -48,7 +48,7 @@ describe('Auth Factory', () => {
         authType: 'oauth1' // Make it explicit for type safety
       };
 
-      const client = createTwitterClient(config) as any;
+      const client = createXClient(config) as any;
       
       expect(client.isOAuth1).toBe(true);
     });
@@ -60,7 +60,7 @@ describe('Auth Factory', () => {
         authType: 'oauth1'
       };
 
-      expect(() => createTwitterClient(config))
+      expect(() => createXClient(config))
         .toThrow('OAuth 1.0a requires all four credentials');
     });
   });
@@ -72,7 +72,7 @@ describe('Auth Factory', () => {
         oauth2AccessToken: 'oauth2-token-123'
       };
 
-      const client = createTwitterClient(config) as any;
+      const client = createXClient(config) as any;
       
       expect(client.isOAuth2).toBe(true);
       expect(client.mockConfig).toBe('oauth2-token-123');
@@ -84,7 +84,7 @@ describe('Auth Factory', () => {
         // Missing oauth2AccessToken
       };
 
-      expect(() => createTwitterClient(config))
+      expect(() => createXClient(config))
         .toThrow('OAuth 2.0 access token is required');
     });
   });
@@ -102,9 +102,9 @@ describe('Auth Factory', () => {
         authType: 'oauth1'
       };
 
-      createTwitterClient(config);
+      createXClient(config);
       
-      expect(consoleSpy).toHaveBeenCalledWith('Initializing Twitter API with OAuth 1.0a');
+      expect(consoleSpy).toHaveBeenCalledWith('Initializing X API with OAuth 1.0a');
       consoleSpy.mockRestore();
     });
 
@@ -117,9 +117,9 @@ describe('Auth Factory', () => {
         oauth2AccessToken: 'oauth2-token-123'
       };
 
-      createTwitterClient(config);
+      createXClient(config);
       
-      expect(consoleSpy).toHaveBeenCalledWith('Initializing Twitter API with OAuth 2.0');
+      expect(consoleSpy).toHaveBeenCalledWith('Initializing X API with OAuth 2.0');
       consoleSpy.mockRestore();
     });
 
@@ -135,7 +135,7 @@ describe('Auth Factory', () => {
         authType: 'oauth1'
       };
 
-      createTwitterClient(config);
+      createXClient(config);
       
       expect(consoleSpy).not.toHaveBeenCalled();
       consoleSpy.mockRestore();

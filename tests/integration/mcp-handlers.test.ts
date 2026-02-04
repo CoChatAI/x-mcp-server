@@ -1,11 +1,11 @@
 import { jest } from '@jest/globals';
-import { TwitterServer } from '../../src/index.js';
-import { TwitterError } from '../../src/types.js';
+import { XServer } from '../../src/index.js';
+import { XError } from '../../src/types.js';
 import type { Config } from '../../src/types.js';
 
 // Mock the Twitter API
 jest.mock('../../src/auth/factory.js', () => ({
-  createTwitterClient: jest.fn(() => ({
+  createXClient: jest.fn(() => ({
     v1: {
       uploadMedia: jest.fn(),
     },
@@ -41,14 +41,14 @@ describe('MCP Handlers Integration', () => {
     authType: 'oauth1'
   };
 
-  let twitterServer: TwitterServer;
+  let xServer: XServer;
   let postTweetHandler: any;
   let searchTweetsHandler: any;
   let listToolsHandler: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    twitterServer = new TwitterServer(mockConfig);
+    xServer = new XServer(mockConfig);
     
     // Extract handlers from the mock calls
     const setRequestHandlerCalls = mockServer.setRequestHandler.mock.calls;
@@ -85,12 +85,12 @@ describe('MCP Handlers Integration', () => {
   describe('Post Tweet Handler', () => {
     beforeEach(() => {
       // Mock the underlying Twitter client
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.postTweetWithMedia = jest.fn();
     });
 
     it('should handle simple tweet posting', async () => {
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.postTweetWithMedia.mockResolvedValue({
         id: '123',
         text: 'Hello world'
@@ -117,7 +117,7 @@ describe('MCP Handlers Integration', () => {
     });
 
     it('should handle tweet with reply', async () => {
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.postTweetWithMedia.mockResolvedValue({
         id: '124',
         text: 'Reply tweet'
@@ -143,7 +143,7 @@ describe('MCP Handlers Integration', () => {
     });
 
     it('should handle tweet with media', async () => {
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.postTweetWithMedia.mockResolvedValue({
         id: '125',
         text: 'Tweet with media'
@@ -190,9 +190,9 @@ describe('MCP Handlers Integration', () => {
     });
 
     it('should handle Twitter API errors', async () => {
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.postTweetWithMedia.mockRejectedValue(
-        new TwitterError('Rate limit exceeded', 'rate_limit_exceeded', 429)
+        new XError('Rate limit exceeded', 'rate_limit_exceeded', 429)
       );
 
       const request = {
@@ -214,12 +214,12 @@ describe('MCP Handlers Integration', () => {
   describe('Search Tweets Handler', () => {
     beforeEach(() => {
       // Mock the underlying Twitter client
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       mockTwitterClient.searchTweets = jest.fn();
     });
 
     it('should handle tweet search', async () => {
-      const mockTwitterClient = (twitterServer as any).client;
+      const mockTwitterClient = (xServer as any).client;
       const mockTweets = [
         {
           id: '1',

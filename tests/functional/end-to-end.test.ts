@@ -20,7 +20,7 @@
  * exceed daily quotas if run multiple times. Use sparingly!
  */
 
-import { TwitterClient } from '../../src/twitter-api.js';
+import { XClient } from '../../src/x-api.js';
 import type { Config } from '../../src/types.js';
 import fs from 'fs';
 import path from 'path';
@@ -48,8 +48,8 @@ describe('End-to-End Twitter API Tests', () => {
   // Track posted tweets for cleanup
   const postedTweetIds: string[] = [];
   
-  let oauth1Client: TwitterClient | null = null;
-  let oauth2Client: TwitterClient | null = null;
+  let oauth1Client: XClient | null = null;
+  let oauth2Client: XClient | null = null;
 
   beforeAll(() => {
     // Initialize OAuth 1.0a client if credentials are available
@@ -62,7 +62,7 @@ describe('End-to-End Twitter API Tests', () => {
         accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
         authType: 'oauth1'
       };
-      oauth1Client = new TwitterClient(oauth1Config);
+      oauth1Client = new XClient(oauth1Config);
     }
 
     // Initialize OAuth 2.0 client if credentials are available
@@ -71,7 +71,7 @@ describe('End-to-End Twitter API Tests', () => {
         authType: 'oauth2',
         oauth2AccessToken: process.env.OAUTH2_ACCESS_TOKEN
       };
-      oauth2Client = new TwitterClient(oauth2Config);
+      oauth2Client = new XClient(oauth2Config);
     }
   });
 
