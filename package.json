@@ -5,7 +5,7 @@
   "type": "module",
   "main": "build/index.js",
   "bin": {
-    "x-server": "./build/index.js"
+    "x-server": "build/index.js"
   },
   "files": [
     "build",
@@ -72,5 +72,8 @@
   "bugs": {
     "url": "https://github.com/Cochat/x-mcp-server/issues"
   },
-  "homepage": "https://github.com/Cochat/x-mcp-server#readme"
+  "homepage": "https://github.com/Cochat/x-mcp-server#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
